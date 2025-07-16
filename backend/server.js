@@ -17,13 +17,11 @@ fs.createReadStream('../datasets/uscounties.csv')
   .on('data', (data) => countyDataset.push(data))
   .on('end', () => {
     console.log("Successfully loaded data!");
+    console.log(countyDataset);
   });
-
-console.log(countyDataset);
 
 app.post('/api/county', upload.none(), async (req, res) => {
   const { countyAndState } = req.body;
-  console.log(req.body);
 
   if (!countyAndState) {
     return res.status(400).json({ error: 'Empty params! Must add valid county and state name' });
