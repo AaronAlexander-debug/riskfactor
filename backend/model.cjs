@@ -3,14 +3,13 @@ global.fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetc
 const fs = require('fs');
 const pLimit = require('p-limit').default;
 const cliProgress = require('cli-progress');
-const { AbortController } = require('abort-controller');
 
 const countyDataset = [];
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const csvWriter = createCsvWriter({
-    path: '..datasets/disasterinfo.csv',
+    path: '../datasets/disasterinfo.csv',
     header: [
         {id: 'county_name', title: 'county_name'},
         {id: 'state_code', title: 'state_code'},
@@ -45,20 +44,12 @@ async function fetchAndExtractCountyData(county) {
     let data;
     let record;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
     try {
-        const response = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeout);
+        const response = await fetch(url);
         data = await response.json();
         await sleep(250);
     } catch (err) {
-        if (err.name === 'AbortError') {
-            console.error(`Timeout fetching data for ${county.county_full}, ${county.state_id}`);
-        } else {
-            console.error('Error fetching USGS data:', err);
-        }
+        console.error('Error fetching USGS data:', err);
         return;
     }
     
@@ -75,7 +66,7 @@ async function fetchAndExtractCountyData(county) {
 }
 
 async function county_parsing() {
-    const limit = pLimit(1);
+    const limit = pLimit(2);
     const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     bar.start(countyDataset.length, 0);
 
